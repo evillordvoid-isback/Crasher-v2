@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: crasher-v2
+    env: static
+    staticPublishPath: .
+    buildCommand: ""
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
